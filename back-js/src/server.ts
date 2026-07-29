@@ -7,6 +7,7 @@ import { contratoRoutes } from './routes/contratos.js'
 import { crudRoutes } from './routes/crud.js'
 import { financeRoutes } from './routes/finance.js'
 import { advancedFinanceRoutes } from './routes/advanced-finance.js'
+import { integrationRoutes } from './routes/integrations.js'
 
 const app = Fastify({ logger: true })
 await app.register(cookie)
@@ -18,6 +19,7 @@ await app.register(contratoRoutes)
 await app.register(crudRoutes)
 await app.register(financeRoutes)
 await app.register(advancedFinanceRoutes)
+await app.register(integrationRoutes)
 
 app.setErrorHandler((error, _request, reply) => {
   app.log.error(error)
