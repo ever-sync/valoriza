@@ -40,6 +40,17 @@ export async function financeRoutes(app: FastifyInstance) {
     return { success: true, data: registros, meta: { total: registros.length } }
   })
 
+  app.get('/fluxo-caixa/projetado', { preHandler: authenticate }, async (request) => {
+    const empresa = request.user.empresa_id
+    const [receitas, despesas] = await Promise.all([
+      db.from('tbl_receitas').select('id,descricao,valor_recebido,data_vencimento,status').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+      db.from('tbl_despesas').select('id,descricao,valor_pago,data_vencimento,status').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+    ])
+    if (receitas.error) throw receitas.error; if (despesas.error) throw despesas.error
+    const data = [...(receitas.data ?? []).map((x) => ({ ...x, tipo: 'receita', valor: money(x.valor_recebido) })), ...(despesas.data ?? []).map((x) => ({ ...x, tipo: 'despesa', valor: money(x.valor_pago) }))].sort((a, b) => String(a.data_vencimento ?? '').localeCompare(String(b.data_vencimento ?? '')))
+    return { success: true, data, meta: { total: data.length } }
+  })
+
   app.post('/contrato/:id/lancar-parcelas', { preHandler: authenticate }, async (request) => {
     const { id } = request.params as { id: string }
     const { data: contrato, error: contratoError } = await db.from('tbl_contratos').select('*').eq('id', id).eq('empresa_id', request.user.empresa_id).single()
