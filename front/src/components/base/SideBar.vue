@@ -101,7 +101,7 @@ watch(() => route.name, () => {
             :to="{ name: item.routeName }"
             class="flex items-center gap-3.5 py-3 text-sm font-bold rounded-2xl transition-all duration-300 relative group overflow-hidden"
             :class="[
-              isCollapsed ? 'justify-center px-0 mx-2' : 'px-4 mx-2',
+              isCollapsed ? 'justify-center px-0 mx-0 w-full' : 'px-4 mx-2',
               isItemActive(item) 
                 ? 'bg-white/10 text-white shadow-lg shadow-black/10 ring-1 ring-white/20' 
                 : 'text-white/60 hover:bg-white/5 hover:text-white/90'
@@ -129,7 +129,7 @@ watch(() => route.name, () => {
               @click="toggleGroup(item.name)"
               class="w-full flex items-center gap-3.5 py-3 text-sm font-bold rounded-2xl transition-all duration-300 group relative overflow-hidden"
               :class="[
-                isCollapsed ? 'justify-center px-0 mx-2' : 'px-4 mx-2',
+                isCollapsed ? 'justify-center px-0 mx-0 w-full' : 'px-4 mx-2',
                 isItemActive(item) 
                   ? 'text-white bg-white/10 ring-1 ring-white/10' 
                   : 'text-white/60 hover:bg-white/5 hover:text-white/90'
@@ -188,7 +188,7 @@ watch(() => route.name, () => {
         <Button
           variant="ghost"
           class="hover:bg-white/10 transition-all rounded-xl py-3"
-          :class="isCollapsed ? 'px-2' : 'w-full justify-start! gap-3 px-4'"
+          :class="isCollapsed ? 'w-12 h-12 px-0 justify-center' : 'w-full justify-start! gap-3 px-4'"
           :title="isCollapsed ? 'Sair do Sistema' : ''"
           @click="emit('logout')"
         >
