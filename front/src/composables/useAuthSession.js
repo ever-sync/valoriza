@@ -18,7 +18,14 @@ function clearUser() {
 
 function getUser() {
   const raw = localStorage.getItem(STORAGE_KEY)
-  return raw ? JSON.parse(raw) : null
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    localStorage.removeItem(STORAGE_KEY)
+    return null
+  }
 }
 
 async function logout() {
