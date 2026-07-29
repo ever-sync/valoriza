@@ -13,6 +13,12 @@ import { integrationRoutes } from './routes/integrations.js'
 export const app = Fastify({ logger: true })
 await app.register(cookie)
 await app.register(cors, { origin: config.CORS_ORIGIN, credentials: true })
+app.addHook('onSend', async (_request, reply) => {
+  reply.header('X-Content-Type-Options', 'nosniff')
+  reply.header('X-Frame-Options', 'DENY')
+  reply.header('Referrer-Policy', 'no-referrer')
+  reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+})
 await app.register(rateLimit, { global: false, max: 100, timeWindow: '1 minute' })
 app.get('/health', async () => ({ success: true, service: 'valoriza-api', runtime: 'node' }))
 await app.register(authRoutes)
