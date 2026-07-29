@@ -82,6 +82,11 @@ export async function financeRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     const { data: contrato, error: contratoError } = await db.from('tbl_contratos').select('*').eq('id', id).eq('empresa_id', request.user.empresa_id).single()
     if (contratoError) throw contratoError
+    const existentes = await db.from('tbl_contratos_parcelas').select('*').eq('contrato_id', id).eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido').order('numero_parcela')
+    if (existentes.error) throw existentes.error
+    if (existentes.data?.length) {
+      return { success: true, idempotente: true, message: 'As parcelas deste contrato já foram lançadas no financeiro.', data: existentes.data }
+    }
     const total = Number(contrato.valor_solicitado); const qtd = Number(contrato.quantidade_parcelas)
     const parcela = contrato.modelo_amortizacao?.toLowerCase() === 'sac' ? total / qtd : pricePayment(total, Number(contrato.taxa_juros), qtd)
     const rows = Array.from({ length: qtd }, (_, i) => { const date = new Date(`${contrato.data_primeira_parcela}T00:00:00`); date.setMonth(date.getMonth() + i); return { empresa_id: request.user.empresa_id, contrato_id: Number(id), numero_parcela: i + 1, valor_parcela: Number(parcela.toFixed(2)), data_vencimento: date.toISOString().slice(0, 10), status_sistema: 'incluido' } })

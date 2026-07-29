@@ -177,7 +177,7 @@ export function useContratoStatus() {
 
   /** Verifica se as parcelas já foram lançadas como receitas */
   const jaLancado = computed(() => {
-    return parcelasLancadas.value?.length > 0 && parcelasLancadas.value.some(p => p.lancada_financeiro)
+    return Array.isArray(parcelasLancadas.value) && parcelasLancadas.value.length > 0
   })
 
   const enviarCRDC = async () => {
