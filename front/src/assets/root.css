@@ -1,9 +1,9 @@
 :root {
   /* Brand Primary */
-  --primary: #1e40af;
-  --primary-hover: #1d4ed8;
-  --primary-light: #dbeafe;
-  --secondary: #f1f5f9;
+  --primary: #173f8a;
+  --primary-hover: #2459b8;
+  --primary-light: #e4edff;
+  --secondary: #eef3f8;
 
   /* Semantic Colors */
   --success: #10b981;
@@ -23,13 +23,13 @@
   --info-text: #1e40af;
 
   /* Neutral Surface */
-  --background: #f8fafc;
+  --background: #f4f7fb;
   --surface: #ffffff;
-  --border: #e2e8f0;
+  --border: #dfe7f1;
   
   /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-tertiary: #94a3b8;
+  --text-primary: #12233f;
+  --text-secondary: #5f7088;
+  --text-tertiary: #8b9bb0;
 }
 

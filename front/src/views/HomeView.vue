@@ -32,11 +32,12 @@ const quickActions = [
 </script>
 
 <template>
-  <div class="p-4 md:p-8 h-full flex flex-col gap-8 overflow-y-auto custom-scrollbar bg-background/50">
+  <div class="page-canvas p-4 md:p-8 h-full flex flex-col gap-7 overflow-y-auto custom-scrollbar">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-black text-text-primary tracking-tight">Dashboard Financeiro</h1>
-        <p class="text-text-tertiary text-sm font-medium">Bem-vindo de volta! Aqui está o resumo da sua operação.</p>
+        <p class="text-[10px] font-black uppercase tracking-[.22em] text-primary mb-2">Resumo executivo</p>
+        <h1 class="text-3xl md:text-4xl font-black text-text-primary tracking-tight">Dashboard Financeiro</h1>
+        <p class="text-text-tertiary text-sm font-medium mt-1">Acompanhe a saúde financeira da sua operação em um só lugar.</p>
       </div>
       <div class="flex gap-2">
         <Button variant="primary" size="sm" outline @click="router.push('/contratos')">Ver Contratos</Button>
