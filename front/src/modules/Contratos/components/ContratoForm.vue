@@ -101,37 +101,30 @@ const fmtValor = (valor) => {
     <div class="flex-1 flex flex-col min-w-0 border-r border-border bg-white">
       <!-- Header / Stepper -->
       <div class="px-6 pt-6 pb-4 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-10">
-        <nav aria-label="Progress">
-          <ol role="list" class="flex items-center">
-            <li v-for="(step, stepIdx) in etapas" :key="step.id" :class="[stepIdx !== etapas.length - 1 ? 'pr-8 sm:pr-20' : '', 'relative']">
+        <nav aria-label="Progress" class="w-full overflow-x-auto pb-1">
+          <ol role="list" class="flex items-start min-w-[560px] w-full">
+            <li v-for="(step, stepIdx) in etapas" :key="step.id" class="relative flex min-w-0 flex-1 flex-col items-center">
+              <div v-if="stepIdx !== 0" class="absolute left-0 right-1/2 top-4 h-0.5" :class="etapaAtual >= step.id ? 'bg-primary' : 'bg-border'" aria-hidden="true"></div>
+              <div v-if="stepIdx !== etapas.length - 1" class="absolute left-1/2 right-0 top-4 h-0.5" :class="etapaAtual > step.id ? 'bg-primary' : 'bg-border'" aria-hidden="true"></div>
               <template v-if="etapaAtual > step.id">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div class="h-0.5 w-full bg-primary" />
-                </div>
-                <button @click="etapaAtual = step.id" class="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary hover:bg-primary-hover transition-colors shadow-sm">
+                <button @click="etapaAtual = step.id" class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary hover:bg-primary-hover transition-colors shadow-sm">
                   <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                   </svg>
                 </button>
               </template>
               <template v-else-if="etapaAtual === step.id">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true" v-if="stepIdx !== etapas.length - 1">
-                  <div class="h-0.5 w-full bg-border" />
-                </div>
-                <button class="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-white shadow-sm" aria-current="step">
+                <button class="relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-white shadow-sm" aria-current="step">
                   <span class="h-2.5 w-2.5 rounded-full bg-primary" />
                 </button>
               </template>
               <template v-else>
-                <div class="absolute inset-0 flex items-center" aria-hidden="true" v-if="stepIdx !== etapas.length - 1">
-                  <div class="h-0.5 w-full bg-border" />
-                </div>
-                <button @click="step.id < etapaAtual ? etapaAtual = step.id : null" class="group relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-border bg-white hover:border-gray-400 transition-colors">
+                <button @click="step.id < etapaAtual ? etapaAtual = step.id : null" class="group relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 border-border bg-white hover:border-gray-400 transition-colors">
                   <span class="h-2.5 w-2.5 rounded-full bg-transparent group-hover:bg-gray-300 transition-colors" />
                 </button>
               </template>
               <!-- Rótulo do passo -->
-              <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-text-tertiary whitespace-nowrap" :class="{ 'text-primary': etapaAtual === step.id }">{{ step.label }}</span>
+              <span class="relative z-10 mt-2 text-center text-[10px] font-semibold leading-4 text-text-tertiary whitespace-nowrap" :class="{ 'text-primary': etapaAtual === step.id }">{{ step.label }}</span>
             </li>
           </ol>
         </nav>
