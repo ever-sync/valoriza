@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import bcrypt from 'bcryptjs'
 import { authenticate, requireRole } from '../auth.js'
 import { db } from '../db.js'
 
@@ -17,9 +18,20 @@ type Resource = keyof typeof resources
 
 function cleanPayload(payload: unknown, userId: number, empresaId: number) {
   const body = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>
-  const forbidden = new Set(['id', 'empresa_id', 'data_cadastro', 'data_atualizacao', 'cadastrado_por', 'atualizado_por'])
+  const forbidden = new Set(['id', 'empresa_id', 'data_cadastro', 'data_atualizacao', 'cadastrado_por', 'atualizado_por', 'status_sistema'])
   const clean = Object.fromEntries(Object.entries(body).filter(([key]) => !forbidden.has(key)))
   return { ...clean, empresa_id: empresaId, atualizado_por: userId }
+}
+
+async function prepararPayload(resource: Resource, payload: Record<string, unknown>) {
+  if (resource === 'usuario') {
+    if (typeof payload.senha === 'string' && payload.senha.trim()) {
+      payload.senha = await bcrypt.hash(payload.senha, 12)
+    }
+    const perfis: Record<string, string> = { admin: 'administrador', administrador: 'administrador', user: 'usuario', usuario: 'usuario', manager: 'gerente', gerente: 'gerente', contador: 'contador' }
+    if (typeof payload.perfil_acesso === 'string') payload.perfil_acesso = perfis[payload.perfil_acesso] ?? payload.perfil_acesso
+  }
+  return payload
 }
 
 export async function crudRoutes(app: FastifyInstance) {
@@ -41,7 +53,7 @@ export async function crudRoutes(app: FastifyInstance) {
     const adminOnly = resource === 'usuario' || resource === 'empresa' || resource === 'configuracoes-contratos'
     const guard = adminOnly ? requireRole('administrador') : authenticate
     app.post(`/${resource}/inserir`, { preHandler: guard }, async (request, reply) => {
-      const payload = cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id)
+      const payload = await prepararPayload(resource, cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id))
       const { data, error } = await db.from(table).insert(payload).select().single()
       if (error) throw error
       return reply.code(201).send({ success: true, data })
@@ -49,7 +61,7 @@ export async function crudRoutes(app: FastifyInstance) {
 
     app.put(`/${resource}/editar/:id`, { preHandler: guard }, async (request) => {
       const { id } = request.params as { id: string }
-      const payload = cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id)
+      const payload = await prepararPayload(resource, cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id))
       const { data, error } = await db.from(table).update(payload).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
       if (error) throw error
       return { success: true, data }
