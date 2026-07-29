@@ -117,7 +117,7 @@ function handleSort(col) {
               </div>
             </td>
           </tr>
-          <tr v-for="row in data" :key="row.id || Math.random()" class="group hover:bg-background/40 transition-all duration-300">
+          <tr v-for="(row, rowIndex) in data" :key="row.id ?? `${currentPage}-${rowIndex}`" class="group hover:bg-background/40 transition-all duration-300">
             
             <td v-for="col in parsedColumns" :key="col.key" class="px-8 py-5 font-bold text-text-primary whitespace-nowrap text-xs tracking-tight">
               <slot :name="'col-' + col.key" :row="row" :value="row[col.key]">
