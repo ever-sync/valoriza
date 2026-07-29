@@ -3,6 +3,8 @@ esc.sql
 
 front/node_modules/
 front/dist/
+back-js/node_modules/
+back-js/dist/
 back/storage/keys/
 back/storage/encryptions/
 back/storage/cache/
