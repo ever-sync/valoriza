@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import useUserSession from '@/composables/useAuthSession'
 import { useTheme } from '@/composables/useTheme'
@@ -12,7 +12,7 @@ import GlobalToast from '@/components/ui/GlobalToast.vue'
 // Assumindo que UserProfileModal será criado em components/base/UserProfileModal.vue
 import UserProfileModal from '@/components/base/UserProfileModal.vue'
 
-const { user, logout } = useUserSession()
+const { user, logout, clearUser } = useUserSession()
 const { primaryColor } = useTheme()
 const isSidebarOpen = ref(false)
 const isSidebarCollapsed = ref(false)
@@ -23,6 +23,13 @@ const isProfileModalOpen = ref(false)
 const toggleSidebar = () => (isSidebarOpen.value = !isSidebarOpen.value)
 const toggleSidebarCollapse = () => (isSidebarCollapsed.value = !isSidebarCollapsed.value)
 const handleLogout = () => logout()
+const handleAuthExpired = () => {
+  clearUser()
+  if (window.location.pathname !== '/login') window.location.replace('/login')
+}
+
+onMounted(() => window.addEventListener('auth-expired', handleAuthExpired))
+onUnmounted(() => window.removeEventListener('auth-expired', handleAuthExpired))
 </script>
 
 <template>

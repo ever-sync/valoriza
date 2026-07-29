@@ -1,6 +1,7 @@
 import getCookie from "../Cookies/getCookie";
 import { useLoading } from "@/composables/useLoading";
 import { useToast } from "@/composables/useToast";
+import { notifyAuthFailure } from './authFailure';
 
 const { start, stop } = useLoading();
 const { fromResponse } = useToast();
@@ -28,6 +29,7 @@ export default async function _delete({ url = "?", callback, showLoading = true,
     });
 
     const data = await response.json();
+    notifyAuthFailure(response.status);
 
     if (showToast || !response.ok) {
         fromResponse(response.status, data.message);
