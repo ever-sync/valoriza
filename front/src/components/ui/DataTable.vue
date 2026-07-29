@@ -84,6 +84,7 @@ function handleSort(col) {
 
     <div class="overflow-x-auto min-h-[300px] custom-scrollbar">
       <table class="w-full text-sm text-left text-text-secondary border-collapse">
+        <caption class="sr-only">Tabela de registros. Use os cabeçalhos para ordenar quando disponível.</caption>
         <thead class="text-[10px] text-text-tertiary bg-background/70 border-b border-border font-black uppercase tracking-[0.15em] select-none">
           <tr>
             <th v-for="col in parsedColumns" :key="col.key" scope="col" class="px-8 py-5 whitespace-nowrap">

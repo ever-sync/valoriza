@@ -31,12 +31,12 @@ const pageTitle = computed(() => {
     <div class="flex items-center justify-end w-full gap-4 md:gap-6">
       <div class="hidden md:flex items-center bg-background border border-border rounded-full px-4 py-1.5 w-64 lg:w-80 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
         <svg class="w-4 h-4 text-text-tertiary font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" v-html="icons.search"></svg>
-        <input type="text" placeholder="Buscar na plataforma" class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
+        <input type="search" aria-label="Buscar na plataforma" placeholder="Buscar na plataforma" class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
       </div>
 
       <div class="flex items-center gap-5">
         <!-- Notifications -->
-        <button class="relative text-text-tertiary hover:text-primary transition-colors">
+        <button aria-label="Abrir notificações" class="relative text-text-tertiary hover:text-primary transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" v-html="icons.bell"></svg>
           <span class="absolute -top-1 -right-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white ring-2 ring-surface">28</span>
         </button>
@@ -48,7 +48,7 @@ const pageTitle = computed(() => {
         </div>
 
         <!-- Help -->
-        <button class="text-text-tertiary hover:text-primary transition-colors hidden sm:block">
+        <button aria-label="Abrir ajuda" class="text-text-tertiary hover:text-primary transition-colors hidden sm:block">
           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14h-2v-2h2zm.93-5.22l-.73.74c-.38.38-.6.88-.6 1.48h-2v-.5c0-.82.34-1.57.88-2.12l1-1c.25-.26.42-.61.42-1a1.5 1.5 0 00-3 0h-2a3.5 3.5 0 017 0 2.45 2.45 0 01-.97 1.4z"/></svg>
         </button>
       </div>

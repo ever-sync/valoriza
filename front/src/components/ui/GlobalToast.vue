@@ -36,6 +36,8 @@ const getIcon = (type) => {
       <div
         v-for="toast in toasts"
         :key="toast.id"
+        role="alert"
+        aria-live="assertive"
         class="pointer-events-auto flex items-center gap-3 px-5 py-4 rounded-2xl shadow-xl border min-w-[320px] max-w-md backdrop-blur-md transition-all duration-300"
         :class="{
           'bg-emerald-50/90 border-emerald-200 text-emerald-800': toast.type === 'success',

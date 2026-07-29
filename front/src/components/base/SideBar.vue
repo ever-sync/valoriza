@@ -84,6 +84,7 @@ watch(() => route.name, () => {
         <!-- Toggle Collapse Button (Desktop Only) -->
         <button 
           @click="emit('toggle-collapse')"
+          :aria-label="isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'"
           class="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full items-center justify-center text-primary shadow-md hover:scale-110 transition-transform cursor-pointer border border-primary/10 z-50"
         >
           <svg class="w-4 h-4 transition-transform duration-300" :class="isCollapsed ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,6 +108,7 @@ watch(() => route.name, () => {
                 : 'text-white/60 hover:bg-white/5 hover:text-white/90'
             ]"
             :title="isCollapsed ? item.name : ''"
+            :aria-label="isCollapsed ? item.name : undefined"
           >
             <!-- Hover Glow Effect -->
             <div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -135,6 +137,7 @@ watch(() => route.name, () => {
                   : 'text-white/60 hover:bg-white/5 hover:text-white/90'
               ]"
               :title="isCollapsed ? item.name : ''"
+              :aria-label="isCollapsed ? item.name : undefined"
             >
               <svg
                 class="w-5 h-5 shrink-0 transition-all duration-300"
@@ -190,6 +193,7 @@ watch(() => route.name, () => {
           class="hover:bg-white/10 transition-all rounded-xl py-3"
           :class="isCollapsed ? 'w-12 h-12 px-0 justify-center' : 'w-full justify-start! gap-3 px-4'"
           :title="isCollapsed ? 'Sair do Sistema' : ''"
+          :aria-label="isCollapsed ? 'Sair do sistema' : undefined"
           @click="emit('logout')"
         >
           <svg

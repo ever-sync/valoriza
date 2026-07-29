@@ -6,7 +6,7 @@ const { isLoading } = useLoading()
 
 <template>
   <Transition name="fade">
-    <div v-if="isLoading" class="fixed inset-0 z-100 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm">
+    <div v-if="isLoading" role="status" aria-live="polite" aria-label="Carregando dados" class="fixed inset-0 z-100 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm">
       <div class="relative flex flex-col items-center">
         <!-- Modern Spinner -->
         <div class="w-16 h-16 relative">
