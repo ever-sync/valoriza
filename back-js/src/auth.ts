@@ -34,6 +34,16 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   }
 }
 
+export function requireRole(...roles: string[]) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply)
+    if (reply.sent) return
+    if (!roles.includes(request.user.perfil_acesso)) {
+      return reply.code(403).send({ success: false, message: 'Acesso não permitido.' })
+    }
+  }
+}
+
 export async function login(email: string, senha: string): Promise<SessionUser | null> {
   const { data, error } = await db.from('tbl_usuarios').select('*').eq('email', email).eq('ativo', true).maybeSingle()
   if (error) throw error

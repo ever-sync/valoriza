@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { authenticate } from '../auth.js'
+import { authenticate, requireRole } from '../auth.js'
 import { db } from '../db.js'
 
 const resources = {
@@ -36,14 +36,16 @@ export async function crudRoutes(app: FastifyInstance) {
       return { success: true, data: data ?? [], meta: { total: count ?? 0 } }
     })
 
-    app.post(`/${resource}/inserir`, { preHandler: authenticate }, async (request, reply) => {
+    const adminOnly = resource === 'usuario' || resource === 'empresa' || resource === 'configuracoes-contratos'
+    const guard = adminOnly ? requireRole('administrador') : authenticate
+    app.post(`/${resource}/inserir`, { preHandler: guard }, async (request, reply) => {
       const payload = cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id)
       const { data, error } = await db.from(table).insert(payload).select().single()
       if (error) throw error
       return reply.code(201).send({ success: true, data })
     })
 
-    app.put(`/${resource}/editar/:id`, { preHandler: authenticate }, async (request) => {
+    app.put(`/${resource}/editar/:id`, { preHandler: guard }, async (request) => {
       const { id } = request.params as { id: string }
       const payload = cleanPayload(request.body, request.user.usuario_id, request.user.empresa_id)
       const { data, error } = await db.from(table).update(payload).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
@@ -51,7 +53,7 @@ export async function crudRoutes(app: FastifyInstance) {
       return { success: true, data }
     })
 
-    app.delete(`/${resource}/excluir/:id`, { preHandler: authenticate }, async (request) => {
+    app.delete(`/${resource}/excluir/:id`, { preHandler: guard }, async (request) => {
       const { id } = request.params as { id: string }
       const { data, error } = await db.from(table).update({ status_sistema: 'excluido', atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
       if (error) throw error

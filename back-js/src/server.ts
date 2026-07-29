@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import cookie from '@fastify/cookie'
 import cors from '@fastify/cors'
+import rateLimit from '@fastify/rate-limit'
 import { config } from './config.js'
 import { authRoutes } from './routes/auth.js'
 import { contratoRoutes } from './routes/contratos.js'
@@ -12,6 +13,7 @@ import { integrationRoutes } from './routes/integrations.js'
 const app = Fastify({ logger: true })
 await app.register(cookie)
 await app.register(cors, { origin: config.CORS_ORIGIN, credentials: true })
+await app.register(rateLimit, { global: false, max: 100, timeWindow: '1 minute' })
 
 app.get('/health', async () => ({ success: true, service: 'valoriza-api', runtime: 'node' }))
 await app.register(authRoutes)
@@ -22,8 +24,9 @@ await app.register(advancedFinanceRoutes)
 await app.register(integrationRoutes)
 
 app.setErrorHandler((error, _request, reply) => {
-  app.log.error(error)
-  const status = error instanceof Error && error.name === 'ZodError' ? 400 : 500
+  const safeError = error instanceof Error ? error : new Error('unknown error')
+  app.log.error({ name: safeError.name, message: safeError.message }, 'request failed')
+  const status = safeError.name === 'ZodError' ? 400 : 500
   return reply.code(status).send({ success: false, message: status === 400 ? 'Dados inválidos.' : 'Erro interno do servidor.' })
 })
 

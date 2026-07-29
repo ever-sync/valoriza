@@ -5,7 +5,7 @@ import { authenticate, createToken, login } from '../auth.js'
 const bodySchema = z.object({ email: z.string().email(), senha: z.string().min(1) })
 
 export async function authRoutes(app: FastifyInstance) {
-  app.post('/auth/login', async (request, reply) => {
+  app.post('/auth/login', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
     const body = bodySchema.parse(request.body)
     const user = await login(body.email, body.senha)
     if (!user) return reply.code(401).send({ success: false, message: 'Credenciais inválidas.' })
