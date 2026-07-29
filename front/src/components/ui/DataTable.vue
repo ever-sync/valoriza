@@ -72,7 +72,7 @@ function handleSort(col) {
 </script>
 
 <template>
-  <div class="bg-[var(--color-surface)] rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border/40 overflow-hidden relative transition-all duration-500">
+  <div class="surface-card overflow-hidden relative transition-all duration-500">
     
     <!-- Loading Overlay -->
     <div v-if="loading" class="absolute inset-0 z-20 bg-[var(--color-surface)]/60 backdrop-blur-md flex items-center justify-center">
@@ -84,7 +84,7 @@ function handleSort(col) {
 
     <div class="overflow-x-auto min-h-[300px] custom-scrollbar">
       <table class="w-full text-sm text-left text-text-secondary border-collapse">
-        <thead class="text-[10px] text-text-tertiary bg-background/50 border-b border-border/40 font-black uppercase tracking-[0.15em] select-none">
+        <thead class="text-[10px] text-text-tertiary bg-background/70 border-b border-border font-black uppercase tracking-[0.15em] select-none">
           <tr>
             <th v-for="col in parsedColumns" :key="col.key" scope="col" class="px-8 py-5 whitespace-nowrap">
               <div 

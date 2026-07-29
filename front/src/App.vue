@@ -26,7 +26,7 @@ const handleLogout = () => logout()
 </script>
 
 <template>
-  <div class="flex h-screen bg-gray-50 font-sans overflow-hidden">
+  <div class="flex h-screen bg-background font-sans overflow-hidden">
     
     <SideBar 
       v-if="route.meta.template === true"

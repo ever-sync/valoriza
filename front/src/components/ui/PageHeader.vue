@@ -12,9 +12,10 @@ defineProps({
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-1">
     <div>
-      <h1 class="text-3xl font-black text-primary tracking-tighter">
+      <p class="text-[10px] font-black uppercase tracking-[.2em] text-text-tertiary mb-1">Gestão financeira</p>
+      <h1 class="text-2xl md:text-3xl font-black text-text-primary tracking-tight">
         {{ title }}
       </h1>
       <p v-if="subtitle" class="text-sm font-medium text-text-tertiary mt-1">

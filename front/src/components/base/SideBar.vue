@@ -62,7 +62,7 @@ watch(() => route.name, () => {
     ></div>
 
     <aside
-      class="sidebar-panel fixed h-full inset-y-0 left-0 bg-primary transform transition-all duration-500 ease-in-out md:relative md:translate-x-0 flex flex-col shadow-2xl z-30"
+      class="sidebar-panel fixed h-full inset-y-0 left-0 bg-[#102d63] transform transition-all duration-500 ease-in-out md:relative md:translate-x-0 flex flex-col shadow-2xl z-30"
       :class="[
         isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         isCollapsed ? 'w-[80px]' : 'w-[280px]'
@@ -73,9 +73,12 @@ watch(() => route.name, () => {
         class="h-[72px] flex items-center border-b border-white/10 relative transition-all duration-300"
         :class="isCollapsed ? 'justify-center px-0' : 'px-6 justify-between'"
       >
-        <div class="flex items-baseline gap-1.5 overflow-hidden transition-all duration-300" :class="isCollapsed ? 'mx-auto' : ''">
-          <span class="font-extrabold text-white tracking-tight transition-all duration-300" :class="isCollapsed ? 'text-xl' : 'text-3xl'">Valoriza</span>
-          <span v-if="!isCollapsed" class="font-medium text-white/50 text-xl tracking-tight transition-all duration-300">Credit</span>
+        <div class="flex items-center gap-2 overflow-hidden transition-all duration-300" :class="isCollapsed ? 'mx-auto' : ''">
+          <div class="w-9 h-9 rounded-xl bg-white/12 border border-white/15 flex items-center justify-center text-white font-black">V</div>
+          <div v-if="!isCollapsed" class="flex flex-col leading-none">
+            <span class="font-extrabold text-white tracking-tight text-xl">Valoriza</span>
+            <span class="font-medium text-white/50 text-[10px] uppercase tracking-[.24em] mt-1">Finance</span>
+          </div>
         </div>
         
         <!-- Toggle Collapse Button (Desktop Only) -->

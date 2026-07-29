@@ -1,0 +1,35 @@
+:root {
+  /* Brand Primary */
+  --primary: #173f8a;
+  --primary-hover: #2459b8;
+  --primary-light: #e4edff;
+  --secondary: #eef3f8;
+
+  /* Semantic Colors */
+  --success: #10b981;
+  --success-light: #d1fae5;
+  --success-text: #065f46;
+  
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --warning-text: #92400e;
+  
+  --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --danger-text: #991b1b;
+  
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  --info-text: #1e40af;
+
+  /* Neutral Surface */
+  --background: #f4f7fb;
+  --surface: #ffffff;
+  --border: #dfe7f1;
+  
+  /* Text */
+  --text-primary: #12233f;
+  --text-secondary: #5f7088;
+  --text-tertiary: #8b9bb0;
+}
+

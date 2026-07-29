@@ -8,12 +8,13 @@ const emit = defineEmits(['toggleSidebar', 'open-profile'])
 const route = useRoute()
 
 const pageTitle = computed(() => {
-  return route.name || 'Dashboard'
+  const labels = { home: 'Visão geral', 'fluxo-caixa': 'Fluxo de caixa', relatorios: 'Relatórios', contratos: 'Contratos', receitas: 'Receitas', despesas: 'Despesas', usuarios: 'Usuários', configuracoes: 'Configurações', 'pessoas-fisicas': 'Pessoas físicas', 'pessoas-juridicas': 'Pessoas jurídicas', bancos: 'Contas bancárias' }
+  return labels[route.name] || 'Visão geral'
 })
 </script>
 
 <template>
-  <header class="bg-surface/80 backdrop-blur-md h-16 shadow-sm border-b border-border flex items-center justify-between px-4 md:px-8 z-10 sticky top-0">
+  <header class="bg-surface/90 backdrop-blur-md min-h-[76px] border-b border-border flex items-center justify-between px-4 md:px-8 z-10 sticky top-0">
     <div class="flex items-center gap-4">
       <button
         @click="emit('toggleSidebar')"
@@ -21,12 +22,16 @@ const pageTitle = computed(() => {
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" v-html="icons.menu"></svg>
       </button>
+      <div class="hidden md:block">
+        <p class="text-[10px] uppercase tracking-[.18em] font-bold text-text-tertiary">Painel financeiro</p>
+        <h1 class="text-lg font-extrabold text-text-primary tracking-tight">{{ pageTitle }}</h1>
+      </div>
     </div>
 
     <div class="flex items-center justify-end w-full gap-4 md:gap-6">
       <div class="hidden md:flex items-center bg-background border border-border rounded-full px-4 py-1.5 w-64 lg:w-80 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
         <svg class="w-4 h-4 text-text-tertiary font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" v-html="icons.search"></svg>
-        <input type="text" placeholder="Pesquisar..." class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
+        <input type="text" placeholder="Buscar na plataforma" class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
       </div>
 
       <div class="flex items-center gap-5">
@@ -39,7 +44,7 @@ const pageTitle = computed(() => {
         <!-- Credits -->
         <div class="hidden md:flex items-center gap-2 text-sm font-bold text-text-secondary bg-background border border-border rounded-lg px-3 py-1">
           <div class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px]">$</div>
-          <span>10,00</span>
+          <span>Central financeira</span>
         </div>
 
         <!-- Help -->
