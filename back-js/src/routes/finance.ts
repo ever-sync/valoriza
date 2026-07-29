@@ -8,19 +8,45 @@ const money = (value: unknown) => Number(value ?? 0) || 0
 export async function financeRoutes(app: FastifyInstance) {
   app.get('/dashboard/stats', { preHandler: authenticate }, async (request) => {
     const empresa = request.user.empresa_id
-    const [receitas, despesas, contratos] = await Promise.all([
-      db.from('tbl_receitas').select('valor_recebido,status,data_vencimento').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
-      db.from('tbl_despesas').select('valor_pago,status,data_vencimento').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+    const [receitas, despesas, contratos, pessoasFisicas, pessoasJuridicas] = await Promise.all([
+      db.from('tbl_receitas').select('id,descricao,valor_recebido,status,data_vencimento,data_cadastro').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+      db.from('tbl_despesas').select('id,descricao,valor_pago,status,data_vencimento,data_cadastro').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
       db.from('tbl_contratos').select('id,status').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+      db.from('tbl_pessoas_fisicas').select('id,data_cadastro').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
+      db.from('tbl_pessoas_juridicas').select('id,data_cadastro').eq('empresa_id', empresa).neq('status_sistema', 'excluido'),
     ])
     if (receitas.error) throw receitas.error
     if (despesas.error) throw despesas.error
     if (contratos.error) throw contratos.error
-    const now = new Date(); const month = now.toISOString().slice(0, 7)
+    if (pessoasFisicas.error) throw pessoasFisicas.error
+    if (pessoasJuridicas.error) throw pessoasJuridicas.error
+    const now = new Date(); const month = now.toISOString().slice(0, 7); const today = now.toISOString().slice(0, 10)
     const receitaRows = receitas.data ?? []; const despesaRows = despesas.data ?? []
     const receitaMes = receitaRows.filter((r) => String(r.data_vencimento ?? '').startsWith(month)).reduce((s, r) => s + money(r.valor_recebido), 0)
     const despesaMes = despesaRows.filter((r) => String(r.data_vencimento ?? '').startsWith(month)).reduce((s, r) => s + money(r.valor_pago), 0)
-    return { success: true, data: { receita_mes: receitaMes, despesa_mes: despesaMes, saldo_mes: receitaMes - despesaMes, receitas_pendentes: receitaRows.filter((r) => r.status !== 'Recebido').reduce((s, r) => s + money(r.valor_recebido), 0), contratos_ativos: (contratos.data ?? []).filter((c) => c.status === 'Ativo').length } }
+    const pendentes = receitaRows.filter((r) => r.status !== 'Recebido')
+    const atrasos = pendentes.filter((r) => r.status === 'Atrasado' || (r.data_vencimento && String(r.data_vencimento) < today)).reduce((s, r) => s + money(r.valor_recebido), 0)
+    const clientes = [...(pessoasFisicas.data ?? []), ...(pessoasJuridicas.data ?? [])]
+    const recentes = [
+      ...receitaRows.map((r) => ({ id: `r-${r.id}`, tipo: 'receita', nome: r.descricao || 'Receita', valor: money(r.valor_recebido), data: r.data_vencimento, status: r.status })),
+      ...despesaRows.map((r) => ({ id: `d-${r.id}`, tipo: 'despesa', nome: r.descricao || 'Despesa', valor: money(r.valor_pago), data: r.data_vencimento, status: r.status })),
+    ].sort((a, b) => String(b.data ?? '').localeCompare(String(a.data ?? ''))).slice(0, 5)
+    const grafico = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - (5 - index), 1)
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      return { mes: new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(date).replace('.', ''), total: receitaRows.filter((r) => String(r.data_vencimento ?? '').startsWith(key)).reduce((s, r) => s + money(r.valor_recebido), 0) }
+    })
+    return { success: true, data: {
+      receita_mes: receitaMes,
+      despesa_mes: despesaMes,
+      saldo_mes: receitaMes - despesaMes,
+      receitas_pendentes: pendentes.reduce((s, r) => s + money(r.valor_recebido), 0),
+      atrasos,
+      novos_clientes: clientes.filter((p) => String(p.data_cadastro ?? '').startsWith(month)).length,
+      contratos_ativos: (contratos.data ?? []).filter((c) => c.status === 'Ativo').length,
+      transacoes_recentes: recentes,
+      grafico,
+    } }
   })
 
   app.get('/fluxo-caixa/periodo', { preHandler: authenticate }, async (request) => {
