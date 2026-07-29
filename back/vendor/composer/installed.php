@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'lumynus/lumynus',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => 'f0960cc8cb2385c2d0c1ae57e08a9417fe9eb768',
+        'type' => 'project',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        'brick/math' => array(
+            'pretty_version' => '0.17.1',
+            'version' => '0.17.1.0',
+            'reference' => '6aef71a9fbbd1ee7be0e313cd627f8e6f7125a5b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../brick/math',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'lumynus/kernel' => array(
+            'pretty_version' => 'v1.7.4',
+            'version' => '1.7.4.0',
+            'reference' => '531bb136fc76c1f337d75c1d857b58e11603298b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../lumynus/kernel',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'lumynus/lumynus' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'f0960cc8cb2385c2d0c1ae57e08a9417fe9eb768',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

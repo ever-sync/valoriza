@@ -1,0 +1,12 @@
+.DS_Store
+esc.sql
+
+front/node_modules/
+front/dist/
+back/storage/keys/
+back/storage/encryptions/
+back/storage/cache/
+back/storage/logs/
+back/storage/memory/
+back/application.json
+
