@@ -1,9 +1,2 @@
-export const IS_PROD = false;
-
-export const BASE_API = IS_PROD
-  ? 'https://riodev.com.br/projetos/esc/back/public'
-  : '/api';
-
-export const BASE_HOME = IS_PROD
-  ? 'https://riodev.com.br/projetos/esc/'
-  : '/';
+export const BASE_API = import.meta.env.VITE_API_BASE_URL || '/api';
+export const BASE_HOME = import.meta.env.VITE_APP_BASE_URL || '/';

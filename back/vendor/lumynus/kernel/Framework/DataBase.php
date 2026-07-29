@@ -264,7 +264,7 @@ class PdoDriver
     {
         $dsn = match ($type) {
             'sqlite' => "sqlite:$h",
-            'postgresql' => "pgsql:host=$h;dbname=$db",
+            'postgresql' => "pgsql:host=$h;dbname=$db;sslmode=require",
             'sqlserver' => "sqlsrv:Server=$h;Database=$db",
         };
 
@@ -300,6 +300,27 @@ class PdoDriver
     public function lastInsertId(): int
     {
         return (int) $this->pdo->lastInsertId();
+    }
+
+    public function query(string $sql, array $params = [], array $types = []): array|bool
+    {
+        $isRead = preg_match('/^\s*(SELECT|WITH|SHOW|EXPLAIN)\b/i', $sql) === 1;
+        return $isRead ? $this->fetchAll($sql, $params) : $this->execute($sql, $params) >= 0;
+    }
+
+    public function getInsertId(): int
+    {
+        return $this->lastInsertId();
+    }
+
+    public function getAffectedRows(): int
+    {
+        return $this->stmt?->rowCount() ?? 0;
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->begin();
     }
 
     public function begin(): void

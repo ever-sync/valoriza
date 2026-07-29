@@ -15,18 +15,24 @@ class Banco extends DataBase
      */
     protected function __construct()
     {
-        $dados = $this->encryption()->readFiles(
-            [
-                'bd_database',
-                'bd_host',
-                'bd_pass',
-                'bd_user'
-            ],
-            'esc'
-        );
+        $dados = [
+            'bd_database' => getenv('SUPABASE_DB_NAME') ?: null,
+            'bd_host' => getenv('SUPABASE_DB_HOST') ?: null,
+            'bd_pass' => getenv('SUPABASE_DB_PASSWORD') ?: null,
+            'bd_user' => getenv('SUPABASE_DB_USER') ?: null,
+        ];
+
+        if (in_array(null, $dados, true)) {
+            $dados = $this->encryption()->readFiles(
+                ['bd_database', 'bd_host', 'bd_pass', 'bd_user'],
+                'esc'
+            );
+        }
+
+        $tipo = getenv('SUPABASE_DB_HOST') ? 'postgresql' : 'mysql';
 
         $this->banco = $this->connect(
-            'mysql',
+            $tipo,
             $dados['bd_host'],
             $dados['bd_user'],
             $dados['bd_pass'],
@@ -47,6 +53,10 @@ class Banco extends DataBase
         // Se os tipos não foram especificados, detecta automaticamente
         if (empty($types) && !empty($params)) {
             $types = $this->detectParamTypes($params);
+        }
+
+        if ($this->isPostgres()) {
+            return $this->banco->query($query, $params);
         }
 
         return $this->banco->query($query, $params, $types);
@@ -85,6 +95,11 @@ class Banco extends DataBase
     private function detectParamTypes(array $params): array
     {
         return array_map(fn($p) => is_int($p) ? 'i' : (is_float($p) ? 'd' : 's'), $params);
+    }
+
+    private function isPostgres(): bool
+    {
+        return getenv('SUPABASE_DB_HOST') !== false && getenv('SUPABASE_DB_HOST') !== '';
     }
 
     /**

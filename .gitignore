@@ -9,4 +9,4 @@ back/storage/cache/
 back/storage/logs/
 back/storage/memory/
 back/application.json
-
+supabase/.temp/
