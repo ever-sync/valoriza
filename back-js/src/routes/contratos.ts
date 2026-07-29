@@ -3,11 +3,25 @@ import { z } from 'zod'
 import { authenticate } from '../auth.js'
 import { db } from '../db.js'
 
+const emptyAsUndefined = (value: unknown) => value === '' || value === null ? undefined : value
+const emptyAsNull = (value: unknown) => value === '' || value === undefined ? null : value
+
 const createSchema = z.object({
-  tipo_operacao: z.string().min(1), valor_solicitado: z.coerce.number().nonnegative(),
-  periodo_amortizacao: z.string().min(1), modelo_amortizacao: z.string().min(1), taxa_juros: z.coerce.number(),
-  tipo_taxa: z.string().default('mensal'), quantidade_parcelas: z.coerce.number().int().positive(),
-  data_assinatura: z.string(), data_primeira_parcela: z.string(), tipo_cliente: z.string().default('pj'), cliente_id: z.coerce.number().optional(),
+  tipo_operacao: z.string().min(1),
+  valor_solicitado: z.coerce.number().nonnegative(),
+  periodo_amortizacao: z.string().min(1),
+  modelo_amortizacao: z.string().min(1),
+  taxa_juros: z.coerce.number(),
+  tipo_taxa: z.string().default('mensal'),
+  // Pagamento único chega sem quantidade no formulário; a operação ainda representa uma parcela.
+  quantidade_parcelas: z.preprocess((value) => value === '' || value == null ? 1 : value, z.coerce.number().int().positive()),
+  data_assinatura: z.string().min(1),
+  data_primeira_parcela: z.string().min(1),
+  tipo_cliente: z.string().default('pj'),
+  cliente_id: z.preprocess(emptyAsNull, z.coerce.number().nullable().optional()),
+  juros_mora: z.preprocess(emptyAsUndefined, z.coerce.number().optional()),
+  multa_moratoria: z.preprocess(emptyAsUndefined, z.coerce.number().optional()),
+  limite_carencia: z.preprocess(emptyAsUndefined, z.coerce.number().int().optional()),
 })
 
 export async function contratoRoutes(app: FastifyInstance) {
