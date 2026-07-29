@@ -52,4 +52,11 @@ export async function contratoRoutes(app: FastifyInstance) {
     if (error) throw error
     return { success: true, data: data ?? [] }
   })
+
+  app.post('/contrato/:id/crdc', { preHandler: authenticate }, async (request) => {
+    const { id } = request.params as { id: string }
+    const { data, error } = await db.from('tbl_contratos').update({ enviar_registradora: true, atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
+    if (error) throw error
+    return { success: true, data, message: 'Contrato marcado para envio à registradora.' }
+  })
 }
