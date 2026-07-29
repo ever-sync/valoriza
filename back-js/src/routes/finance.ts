@@ -1,9 +1,17 @@
 import type { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 import { authenticate } from '../auth.js'
 import { db } from '../db.js'
 import { pricePayment } from '../utils/calculations.js'
 
 const money = (value: unknown) => Number(value ?? 0) || 0
+
+const simulationSchema = z.object({
+  valor_solicitado: z.coerce.number().finite().positive(),
+  taxa_juros: z.coerce.number().finite().nonnegative(),
+  quantidade_parcelas: z.coerce.number().int().positive().max(120),
+  data_primeira_parcela: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+})
 
 export async function financeRoutes(app: FastifyInstance) {
   app.get('/dashboard/stats', { preHandler: authenticate }, async (request) => {
@@ -88,6 +96,9 @@ export async function financeRoutes(app: FastifyInstance) {
       return { success: true, idempotente: true, message: 'As parcelas deste contrato já foram lançadas no financeiro.', data: existentes.data }
     }
     const total = Number(contrato.valor_solicitado); const qtd = Number(contrato.quantidade_parcelas)
+    if (!Number.isFinite(total) || total <= 0 || !Number.isInteger(qtd) || qtd <= 0 || qtd > 120) {
+      return { success: false, message: 'Parâmetros de parcelas inválidos.' }
+    }
     const parcela = contrato.modelo_amortizacao?.toLowerCase() === 'sac' ? total / qtd : pricePayment(total, Number(contrato.taxa_juros), qtd)
     const rows = Array.from({ length: qtd }, (_, i) => { const date = new Date(`${contrato.data_primeira_parcela}T00:00:00`); date.setMonth(date.getMonth() + i); return { empresa_id: request.user.empresa_id, contrato_id: Number(id), numero_parcela: i + 1, valor_parcela: Number(parcela.toFixed(2)), data_vencimento: date.toISOString().slice(0, 10), status_sistema: 'incluido' } })
     const { data, error } = await db.from('tbl_contratos_parcelas').insert(rows).select()
@@ -96,9 +107,10 @@ export async function financeRoutes(app: FastifyInstance) {
   })
 
   app.post('/contrato/simular', { preHandler: authenticate }, async (request) => {
-    const body = request.body as Record<string, unknown>; const total = money(body.valor_solicitado); const qtd = Number(body.quantidade_parcelas)
-    const parcela = pricePayment(total, Number(body.taxa_juros), qtd)
-    const inicio = new Date(`${String(body.data_primeira_parcela)}T00:00:00`)
+    const body = simulationSchema.parse(request.body)
+    const total = body.valor_solicitado; const qtd = body.quantidade_parcelas
+    const parcela = pricePayment(total, body.taxa_juros, qtd)
+    const inicio = new Date(`${body.data_primeira_parcela}T00:00:00`)
     const parcelas = Array.from({ length: qtd }, (_, i) => { const date = new Date(inicio); date.setMonth(date.getMonth() + i); return { num: i + 1, numero_parcela: i + 1, valor_parcela: Number(parcela.toFixed(2)), data_vencimento: date.toISOString().slice(0, 10) } })
     return { success: true, data: { parcelas, total_parcelas: Number((parcela * qtd).toFixed(2)), valor_parcela: Number(parcela.toFixed(2)) } }
   })
