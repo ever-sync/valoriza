@@ -23,4 +23,33 @@ export async function contratoRoutes(app: FastifyInstance) {
     if (error) throw error
     return reply.code(201).send({ success: true, data })
   })
+
+  app.put('/contrato/editar/:id', { preHandler: authenticate }, async (request) => {
+    const { id } = request.params as { id: string }
+    const body = createSchema.partial().parse(request.body)
+    const { data, error } = await db.from('tbl_contratos').update({ ...body, atualizado_por: request.user.usuario_id, data_atualizacao: new Date().toISOString() }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
+    if (error) throw error
+    return { success: true, data }
+  })
+
+  app.delete('/contrato/excluir/:id', { preHandler: authenticate }, async (request) => {
+    const { id } = request.params as { id: string }
+    const { data, error } = await db.from('tbl_contratos').update({ status_sistema: 'excluido', atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single()
+    if (error) throw error
+    return { success: true, data }
+  })
+
+  app.get('/contrato/:id/parcelas', { preHandler: authenticate }, async (request) => {
+    const { id } = request.params as { id: string }
+    const { data, error } = await db.from('tbl_contratos_parcelas').select('*').eq('contrato_id', id).eq('empresa_id', request.user.empresa_id).order('numero_parcela')
+    if (error) throw error
+    return { success: true, data: data ?? [] }
+  })
+
+  app.get('/contrato/garantias/:id', { preHandler: authenticate }, async (request) => {
+    const { id } = request.params as { id: string }
+    const { data, error } = await db.from('tbl_contratos_garantias').select('*').eq('contrato_id', id).eq('empresa_id', request.user.empresa_id).order('id')
+    if (error) throw error
+    return { success: true, data: data ?? [] }
+  })
 }
