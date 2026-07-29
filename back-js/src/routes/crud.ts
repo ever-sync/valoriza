@@ -28,12 +28,14 @@ export async function crudRoutes(app: FastifyInstance) {
 
     app.get(`/${resource}/buscar`, { preHandler: authenticate }, async (request) => {
       const query = request.query as Record<string, string | undefined>
+      const page = Math.max(1, Number(query.pagina_atual ?? query.pagina ?? 1) || 1)
+      const perPage = Math.min(100, Math.max(1, Number(query.por_pagina ?? query.porPagina ?? 10) || 10))
       let builder = db.from(table).select('*', { count: 'exact' }).eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido')
       if (query.id) builder = builder.eq('id', query.id)
       if (query.status) builder = builder.eq('status', query.status)
-      const { data, error, count } = await builder.order('id', { ascending: false })
+      const { data, error, count } = await builder.order('id', { ascending: false }).range((page - 1) * perPage, page * perPage - 1)
       if (error) throw error
-      return { success: true, data: data ?? [], meta: { total: count ?? 0 } }
+      return { success: true, data: data ?? [], meta: { total: count ?? 0, pagina: page, pagina_atual: page, porPagina: perPage, por_pagina: perPage } }
     })
 
     const adminOnly = resource === 'usuario' || resource === 'empresa' || resource === 'configuracoes-contratos'

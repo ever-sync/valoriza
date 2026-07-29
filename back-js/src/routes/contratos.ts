@@ -12,9 +12,15 @@ const createSchema = z.object({
 
 export async function contratoRoutes(app: FastifyInstance) {
   app.get('/contrato/buscar', { preHandler: authenticate }, async (request) => {
-    const { data, error, count } = await db.from('tbl_contratos').select('*', { count: 'exact' }).eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido').order('id', { ascending: false })
+    const query = request.query as Record<string, string | undefined>
+    const page = Math.max(1, Number(query.pagina_atual ?? query.pagina ?? 1) || 1)
+    const perPage = Math.min(100, Math.max(1, Number(query.por_pagina ?? query.porPagina ?? 10) || 10))
+    let builder = db.from('tbl_contratos').select('*', { count: 'exact' }).eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido')
+    if (query.status) builder = builder.eq('status', query.status)
+    if (query.tipo_operacao) builder = builder.eq('tipo_operacao', query.tipo_operacao)
+    const { data, error, count } = await builder.order('id', { ascending: false }).range((page - 1) * perPage, page * perPage - 1)
     if (error) throw error
-    return { success: true, data: data ?? [], meta: { total: count ?? 0 } }
+    return { success: true, data: data ?? [], meta: { total: count ?? 0, pagina: page, pagina_atual: page, porPagina: perPage, por_pagina: perPage } }
   })
 
   app.post('/contrato/inserir', { preHandler: authenticate }, async (request, reply) => {
