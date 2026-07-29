@@ -1,16 +1,39 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { icons } from '@/constants/navigation'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { icons, menuItems } from '@/constants/navigation'
 
 defineProps(['userName', 'registration'])
 const emit = defineEmits(['toggleSidebar', 'open-profile'])
 const route = useRoute()
+const router = useRouter()
+const searchTerm = ref('')
 
 const pageTitle = computed(() => {
   const labels = { home: 'Visão geral', 'fluxo-caixa': 'Fluxo de caixa', relatorios: 'Relatórios', contratos: 'Contratos', receitas: 'Receitas', despesas: 'Despesas', usuarios: 'Usuários', configuracoes: 'Configurações', 'pessoas-fisicas': 'Pessoas físicas', 'pessoas-juridicas': 'Pessoas jurídicas', bancos: 'Contas bancárias' }
   return labels[route.name] || 'Visão geral'
 })
+
+const searchOptions = computed(() => menuItems.flatMap((item) => [
+  ...(item.routeName ? [{ name: item.name, routeName: item.routeName }] : []),
+  ...(item.subItems || []).map((sub) => ({ name: `${item.name} · ${sub.name}`, routeName: sub.routeName }))
+]))
+
+const searchResults = computed(() => {
+  const term = searchTerm.value.trim().toLocaleLowerCase('pt-BR')
+  if (!term) return []
+  return searchOptions.value.filter((item) => item.name.toLocaleLowerCase('pt-BR').includes(term)).slice(0, 6)
+})
+
+const goToSearchResult = (result) => {
+  router.push({ name: result.routeName })
+  searchTerm.value = ''
+}
+
+const handleSearchKeydown = (event) => {
+  if (event.key === 'Enter' && searchResults.value[0]) goToSearchResult(searchResults.value[0])
+  if (event.key === 'Escape') searchTerm.value = ''
+}
 </script>
 
 <template>
@@ -29,9 +52,14 @@ const pageTitle = computed(() => {
     </div>
 
     <div class="flex items-center justify-end w-full gap-4 md:gap-6">
-      <div class="hidden md:flex items-center bg-background border border-border rounded-full px-4 py-1.5 w-64 lg:w-80 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
+      <div class="hidden md:flex relative items-center bg-background border border-border rounded-full px-4 py-1.5 w-64 lg:w-80 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
         <svg class="w-4 h-4 text-text-tertiary font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" v-html="icons.search"></svg>
-        <input type="search" aria-label="Buscar na plataforma" placeholder="Buscar na plataforma" class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
+        <input v-model="searchTerm" @keydown="handleSearchKeydown" type="search" aria-label="Buscar na plataforma" placeholder="Buscar na plataforma" class="bg-transparent outline-none ring-0 w-full text-sm ml-2 text-text-primary placeholder-text-tertiary" />
+        <div v-if="searchResults.length" class="absolute top-full left-0 right-0 mt-2 rounded-2xl border border-border bg-surface shadow-xl overflow-hidden z-50">
+          <button v-for="result in searchResults" :key="result.routeName" type="button" class="w-full text-left px-4 py-3 text-xs font-bold text-text-secondary hover:bg-primary/5 hover:text-primary transition-colors" @mousedown.prevent="goToSearchResult(result)">
+            {{ result.name }}
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center gap-5">
