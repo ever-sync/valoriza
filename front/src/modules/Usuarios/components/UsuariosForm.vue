@@ -63,9 +63,11 @@ defineExpose({ save: handleSalvar })
       <div class="space-y-2">
         <label class="text-sm font-bold text-text-secondary ml-1">Perfil de Acesso</label>
         <select v-model="formulario.perfil_acesso" class="w-full h-12 px-4 rounded-xl bg-background border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none text-sm font-medium appearance-none">
-          <option value="admin">Administrador</option>
-          <option value="user">Usuário</option>
-          <option value="manager">Gerente</option>
+          <!-- Precisa espelhar os perfis de constants/navigation.js: perfil fora dessa
+               lista gera usuário com a barra lateral vazia. -->
+          <option value="administrador">Administrador</option>
+          <option value="contador">Contador</option>
+          <option value="operador">Operador</option>
         </select>
       </div>
       <div class="space-y-2 col-span-full">

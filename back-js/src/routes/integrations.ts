@@ -22,11 +22,16 @@ export async function integrationRoutes(app: FastifyInstance) {
 
   app.get('/relatorios/contabil-recebimentos', { preHandler: authenticate }, async (request) => {
     const q = request.query as { inicio?: string; fim?: string; data_inicio?: string; data_fim?: string }
-    let query = db.from('tbl_receitas').select('id,descricao,valor_recebido,data_recebimento,status,forma_recebimento').eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido')
+    let query = db.from('tbl_receitas').select('id,descricao,valor_recebido,valor_original,valor_pago,data_recebimento,status,forma_recebimento').eq('empresa_id', request.user.empresa_id).neq('status_sistema', 'excluido')
     const inicio = q.inicio ?? q.data_inicio; const fim = q.fim ?? q.data_fim
     if (inicio) query = query.gte('data_recebimento', inicio); if (fim) query = query.lte('data_recebimento', fim)
     const { data, error } = await query.order('data_recebimento', { ascending: false }); if (error) throw error
-    const rows = data ?? []; return { success: true, data: rows, meta: { total: rows.length, valor_total: rows.reduce((s, x) => s + Number(x.valor_recebido ?? 0), 0) } }
+    const rows = data ?? []
+    // Relatório de recebimentos, filtrado por data_recebimento: o valor fiel é o que
+    // entrou (valor_pago), não a cobrança. Em linhas anteriores à migration o
+    // acumulado ainda é zero, então valem pelo valor_recebido.
+    const recebido = (linha: Record<string, unknown>) => (linha.valor_original == null ? Number(linha.valor_recebido ?? 0) : Number(linha.valor_pago ?? 0)) || 0
+    return { success: true, data: rows, meta: { total: rows.length, valor_total: rows.reduce((s, x) => s + recebido(x), 0) } }
   })
 
   app.get('/relatorios/contabil-pagamentos', { preHandler: authenticate }, async (request) => {

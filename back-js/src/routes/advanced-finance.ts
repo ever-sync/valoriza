@@ -1,8 +1,36 @@
 import type { FastifyInstance } from 'fastify'
 import { authenticate } from '../auth.js'
 import { db } from '../db.js'
+import { encargosAtraso } from '../utils/calculations.js'
 
 const n = (v: unknown) => Number(v ?? 0) || 0
+
+/** Contrato de origem da receita, quando houver — traz as regras de inadimplência. */
+async function contratoDaReceita(receita: Record<string, unknown>, empresaId: number) {
+  if (!receita?.contrato_id) return null
+  const { data, error } = await db
+    .from('tbl_contratos')
+    .select('taxa_juros,juros_mora,multa_moratoria')
+    .eq('id', receita.contrato_id)
+    .eq('empresa_id', empresaId)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+/**
+ * Valor cobrado na receita. Linhas anteriores à migration que criou valor_original
+ * caem no valor_recebido, que nelas ainda representa a cobrança cheia.
+ */
+const valorOriginal = (receita: Record<string, unknown>) =>
+  receita.valor_original == null ? n(receita.valor_recebido) : n(receita.valor_original)
+
+const diasEntre = (vencimento: unknown, referencia: string) => {
+  const fim = new Date(`${referencia}T00:00:00`).getTime()
+  const inicio = new Date(`${String(vencimento)}T00:00:00`).getTime()
+  if (!Number.isFinite(fim) || !Number.isFinite(inicio)) return 0
+  return Math.max(0, Math.floor((fim - inicio) / 86400000))
+}
 
 export async function advancedFinanceRoutes(app: FastifyInstance) {
   app.get('/receita/:id/contrato', { preHandler: authenticate }, async (request) => {
@@ -26,10 +54,24 @@ export async function advancedFinanceRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }; const body = request.body as Record<string, unknown>
     const { data: receita, error } = await db.from('tbl_receitas').select('*').eq('id', id).eq('empresa_id', request.user.empresa_id).single()
     if (error) throw error
-    const vencimento = new Date(`${String(receita.data_vencimento)}T00:00:00`); const hoje = new Date(`${String(body.data_recebimento ?? new Date().toISOString().slice(0, 10))}T00:00:00`)
-    const dias = Math.max(0, Math.floor((hoje.getTime() - vencimento.getTime()) / 86400000)); const valor = n(receita.valor_recebido)
-    const juros_mora = Number((valor * 0.00033 * dias).toFixed(2)); const multa = dias > 0 ? Number((valor * 0.02).toFixed(2)) : 0
-    return { success: true, data: { dias_atraso: dias, juros_mora, multa, juros_atualizacao: 0, valor_devido: Number((valor + juros_mora + multa).toFixed(2)), taxas: { juros_mora, multa } } }
+    const contrato = await contratoDaReceita(receita, request.user.empresa_id)
+    const referencia = String(body.data_recebimento ?? new Date().toISOString().slice(0, 10))
+    const encargos = encargosAtraso({
+      valor: n(receita.valor_recebido),
+      diasAtraso: diasEntre(receita.data_vencimento, referencia),
+      jurosMoraMensal: contrato?.juros_mora,
+      multaMoratoria: contrato?.multa_moratoria,
+    })
+    // `taxas` carrega alíquotas, não valores: a tela de recebimento as renderiza como
+    // "(x% a.m.)" ao lado de cada encargo.
+    return {
+      success: true,
+      data: {
+        ...encargos,
+        juros_atualizacao: 0,
+        taxas: { ...encargos.taxas, juros_contrato: contrato?.taxa_juros ?? null },
+      },
+    }
   })
 
   app.post('/receita/:id/simular-prorrogacao', { preHandler: authenticate }, async (request) => {
@@ -55,8 +97,13 @@ export async function advancedFinanceRoutes(app: FastifyInstance) {
   app.post('/receita/:id/pagar-parcial', { preHandler: authenticate }, async (request) => {
     const { id } = request.params as { id: string }; const body = request.body as Record<string, unknown>; const pago = n(body.valor_pago)
     const { data: receita, error } = await db.from('tbl_receitas').select('*').eq('id', id).eq('empresa_id', request.user.empresa_id).single(); if (error) throw error
-    const novo = Math.max(0, n(receita.valor_recebido) - pago); const status = novo === 0 ? 'Recebido' : 'Pendente'
-    const result = await db.from('tbl_receitas').update({ valor_recebido: novo, status, data_recebimento: body.data_pagamento ?? new Date().toISOString().slice(0, 10), atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single(); if (result.error) throw result.error
+    // valor_original preserva a cobrança; valor_pago acumula os recebimentos. O saldo
+    // segue espelhado em valor_recebido, que é o campo lido pelas telas e relatórios.
+    const original = valorOriginal(receita)
+    const acumulado = n(receita.valor_pago) + pago
+    const saldo = Math.max(0, Number((original - acumulado).toFixed(2)))
+    const status = saldo === 0 ? 'Recebido' : 'Pendente'
+    const result = await db.from('tbl_receitas').update({ valor_original: original, valor_pago: acumulado, valor_recebido: saldo, status, data_recebimento: body.data_pagamento ?? new Date().toISOString().slice(0, 10), atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single(); if (result.error) throw result.error
     return { success: true, data: result.data }
   })
 
@@ -67,7 +114,10 @@ export async function advancedFinanceRoutes(app: FastifyInstance) {
   })
   app.post('/receita/:id/quitar-integral', { preHandler: authenticate }, async (request) => {
     const { id } = request.params as { id: string }; const body = request.body as Record<string, unknown>
-    const result = await db.from('tbl_receitas').update({ status: 'Recebido', data_recebimento: body.data_recebimento ?? new Date().toISOString().slice(0, 10), conta_bancaria_destino_id: body.conta_bancaria_destino_id, atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single(); if (result.error) throw result.error
+    const { data: receita, error } = await db.from('tbl_receitas').select('*').eq('id', id).eq('empresa_id', request.user.empresa_id).single(); if (error) throw error
+    // Quitação integral fecha a receita: o acumulado pago passa a ser a cobrança cheia.
+    const original = valorOriginal(receita)
+    const result = await db.from('tbl_receitas').update({ valor_original: original, valor_pago: original, status: 'Recebido', data_recebimento: body.data_recebimento ?? new Date().toISOString().slice(0, 10), conta_bancaria_destino_id: body.conta_bancaria_destino_id, atualizado_por: request.user.usuario_id }).eq('id', id).eq('empresa_id', request.user.empresa_id).select().single(); if (result.error) throw result.error
     return { success: true, data: result.data }
   })
 

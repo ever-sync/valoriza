@@ -22,9 +22,28 @@ export async function createToken(user: SessionUser) {
     .sign(secret)
 }
 
+// Como o front consome a API de outro domínio, o cookie de sessão é SameSite=None e o
+// navegador o anexa em requisições cross-site. Escritas passam a exigir o cabeçalho
+// Authorization: um site externo não consegue defini-lo sem disparar preflight, e o
+// preflight morre no CORS. Leituras seguem aceitando o cookie — ali o CORS já impede
+// ler a resposta cross-site.
+const METODOS_DE_LEITURA = new Set(['GET', 'HEAD', 'OPTIONS'])
+
 export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
-  const token = request.cookies.valoriza_session
-  if (!token) return reply.code(401).send({ success: false, message: 'Usuário não logado.' })
+  const cabecalho = request.headers.authorization
+  const bearer = cabecalho?.startsWith('Bearer ') ? cabecalho.substring(7) : undefined
+  const cookie = METODOS_DE_LEITURA.has(request.method) ? request.cookies.valoriza_session : undefined
+  const token = bearer ?? cookie
+
+  if (!token) {
+    const bloqueadoPorFaltaDeCabecalho = !bearer && !!request.cookies.valoriza_session
+    return reply.code(401).send({
+      success: false,
+      message: bloqueadoPorFaltaDeCabecalho
+        ? 'Esta operação exige o token de sessão no cabeçalho Authorization.'
+        : 'Usuário não logado.',
+    })
+  }
 
   try {
     const { payload } = await jwtVerify(token, secret)
