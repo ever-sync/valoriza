@@ -6,6 +6,11 @@ import { notifyAuthFailure } from './authFailure';
 const { start, stop } = useLoading();
 const { fromResponse } = useToast();
 
+function getAuthHeaders() {
+  const token = localStorage.getItem("auth_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default async function _get({ url = "?", callback, showLoading = true, showToast = false }) {
   try {
     if (url.includes("/api") === false) {
@@ -25,6 +30,7 @@ export default async function _get({ url = "?", callback, showLoading = true, sh
         "Content-Type": "application/json",
         "HTTP-XSRF-TOKEN": getCookie("XSRF_TOKEN"),
         Accept: "application/json",
+        ...getAuthHeaders(),
       },
     });
 

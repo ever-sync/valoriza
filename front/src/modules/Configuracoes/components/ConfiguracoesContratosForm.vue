@@ -178,7 +178,7 @@ defineExpose({
               placeholder="00.000.000/0000-00"
             />
             <Input v-model="formData.crdc_usuario" label="Usuário CRDC" />
-            <Input v-model="formData.crdc_senha" label="Senha CRDC" type="password" />
+            <Input v-model="formData.crdc_senha" label="Senha CRDC" type="password" placeholder="Deixe em branco para manter a senha atual" />
           </div>
         </div>
       </section>

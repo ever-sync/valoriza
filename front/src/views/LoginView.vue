@@ -33,7 +33,7 @@ const handleLogin = () => {
       state.loading = false
       if (status <= 205) {
         state.success = true
-        setUser(data.data || data)
+        setUser(data.data || data, data.token)
         nextTick(() => {
           setTimeout(() => {
             window.location.href = BASE_HOME
